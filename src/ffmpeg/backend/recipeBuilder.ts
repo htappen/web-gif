@@ -123,6 +123,25 @@ export class FfmpegRecipeBuilder {
       filters.push(`scale=-2:${recipe.outputHeight}`);
     }
 
+    if (recipe.textOverlay) {
+      const { color, fontFileName, fontSize, text, x, y } = recipe.textOverlay;
+      const escapedText = text
+        .replace(/\\/g, '\\\\')
+        .replace(/:/g, '\\:')
+        .replace(/'/g, "\\'")
+        .replace(/\[/g, '\\[')
+        .replace(/\]/g, '\\]')
+        .replace(/,/g, '\\,');
+      const escapedFontFile = fontFileName.replace(/\\/g, '/').replace(/:/g, '\\:');
+
+      filters.push(
+        `drawtext=fontfile=${escapedFontFile}:text='${escapedText}':fontcolor=${color}:fontsize=${Math.max(
+          12,
+          Math.round(fontSize),
+        )}:x=${Math.max(0, Math.round(x))}:y=${Math.max(0, Math.round(y))}`,
+      );
+    }
+
     return filters.length > 0 ? filters.join(',') : null;
   }
 

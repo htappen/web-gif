@@ -33,15 +33,6 @@ google-chrome \
   --headless \
   --disable-gpu \
   --no-sandbox \
-  --virtual-time-budget=9000 \
-  --dump-dom \
-  "${APP_URL}/?autoconvert=1" \
-  2>/dev/null | tee "$OUTPUT_DIR/autoconvert.dom.html" | rg 'conversion-result|Download preview.gif|Converted GIF preview|preview.gif'
-
-google-chrome \
-  --headless \
-  --disable-gpu \
-  --no-sandbox \
   --window-size=1440,1200 \
   --screenshot="$OUTPUT_DIR/desktop.png" \
   "$APP_URL" \
@@ -55,5 +46,7 @@ google-chrome \
   --screenshot="$OUTPUT_DIR/mobile.png" \
   "$APP_URL" \
   >/dev/null 2>&1
+
+APP_URL="$APP_URL" OUTPUT_DIR="$OUTPUT_DIR/app-conversion" ./tools/run-app-ffmpeg-checks.sh
 
 echo "Browser checks passed."

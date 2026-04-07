@@ -5,6 +5,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { OutputPanel } from './components/OutputPanel';
 import { PreviewStage } from './components/PreviewStage';
 import { TimelineControl } from './components/TimelineControl';
+import { buildConversionOptions, buildConversionRecipe, getFfmpegBackend } from './ffmpeg/appIntegration';
 import type {
   ConversionResult,
   CropBox,
@@ -16,14 +17,18 @@ import type {
 import { clamp, getOutputDimensions } from './utils';
 
 const SAMPLE_VIDEO = '/media/sample.mp4';
-const PLACEHOLDER_GIF = '/media/placeholder.gif';
+
+function getInitialFormat(): OutputFormat {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('format') === 'mp4' ? 'mp4' : 'gif';
+}
 
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const autoConvertStartedRef = useRef(false);
   const currentSourceRef = useRef<SourceMedia | null>(null);
+  const currentResultRef = useRef<ConversionResult | null>(null);
   const sourceProgressTimerRef = useRef<number | null>(null);
-  const convertTimerRef = useRef<number | null>(null);
   const sourceFinalizeTimerRef = useRef<number | null>(null);
   const [loaderProgress, setLoaderProgress] = useState(0);
   const [loaderStepIndex, setLoaderStepIndex] = useState(0);
@@ -41,7 +46,7 @@ export default function App() {
   const [cropBox, setCropBox] = useState<CropBox>(DEFAULT_CROP);
   const [rotation, setRotation] = useState<Rotation>(0);
   const [textOverlay, setTextOverlay] = useState<TextOverlayState>(DEFAULT_TEXT);
-  const [format, setFormat] = useState<OutputFormat>('gif');
+  const [format, setFormat] = useState<OutputFormat>(getInitialFormat);
   const [resolution, setResolution] = useState(480);
   const [frameRate, setFrameRate] = useState(18);
   const [isConverting, setIsConverting] = useState(false);
@@ -90,6 +95,10 @@ export default function App() {
   }, [source]);
 
   useEffect(() => {
+    currentResultRef.current = conversionResult;
+  }, [conversionResult]);
+
+  useEffect(() => {
     if (!isReady || !source || isSourceLoading || isConverting || conversionResult) {
       return;
     }
@@ -101,7 +110,7 @@ export default function App() {
     }
 
     autoConvertStartedRef.current = true;
-    beginMockConversion();
+    void beginConversion();
   }, [conversionResult, isConverting, isReady, isSourceLoading, source]);
 
   useEffect(() => {
@@ -118,8 +127,8 @@ export default function App() {
         window.clearTimeout(sourceFinalizeTimerRef.current);
       }
 
-      if (convertTimerRef.current) {
-        window.clearInterval(convertTimerRef.current);
+      if (currentResultRef.current?.revokeOnDispose) {
+        URL.revokeObjectURL(currentResultRef.current.url);
       }
     };
   }, []);
@@ -166,7 +175,7 @@ export default function App() {
       URL.revokeObjectURL(source.url);
     }
 
-    setConversionResult(null);
+    disposeConversionResult();
     setSourceProgress(6);
     setIsSourceLoading(true);
     setSource(nextSource);
@@ -195,50 +204,98 @@ export default function App() {
     });
   }
 
-  function beginMockConversion() {
+  function disposeConversionResult() {
+    setConversionResult((current) => {
+      if (current?.revokeOnDispose) {
+        URL.revokeObjectURL(current.url);
+      }
+
+      return null;
+    });
+  }
+
+  async function readSourceBytes(activeSource: SourceMedia) {
+    if (activeSource.file) {
+      return new Uint8Array(await activeSource.file.arrayBuffer());
+    }
+
+    const response = await fetch(activeSource.url);
+    if (!response.ok) {
+      throw new Error(`Failed to load source media: ${activeSource.name}`);
+    }
+
+    return new Uint8Array(await response.arrayBuffer());
+  }
+
+  async function beginConversion() {
     if (!source || isConverting) {
       return;
     }
 
     autoConvertStartedRef.current = true;
     setIsConverting(true);
-    setConversionResult(null);
+    disposeConversionResult();
     setConversionProgress(4);
 
-    if (convertTimerRef.current) {
-      window.clearInterval(convertTimerRef.current);
-    }
+    try {
+      const backend = getFfmpegBackend();
+      const recipe = buildConversionRecipe({
+        format,
+        sourceName: source.name,
+        trimStart,
+        trimEnd,
+        cropEnabled,
+        cropBox,
+        rotation,
+        frameRate,
+        resolution,
+        sourceWidth,
+        sourceHeight,
+        textOverlay,
+      });
+      const sourceBytes = await readSourceBytes(source);
+      const conversionOptions = await buildConversionOptions({
+        format,
+        sourceName: source.name,
+        trimStart,
+        trimEnd,
+        cropEnabled,
+        cropBox,
+        rotation,
+        frameRate,
+        resolution,
+        sourceWidth,
+        sourceHeight,
+        textOverlay,
+      });
+      const result = await backend.runRecipe(sourceBytes, recipe, {
+        ...conversionOptions,
+        onProgress: (progress) => {
+          setConversionProgress(clamp(Math.round(progress * 100), 4, 99));
+        },
+      });
+      const mimeType = format === 'gif' ? 'image/gif' : 'video/mp4';
+      const outputUrl = URL.createObjectURL(new Blob([result.outputData], { type: mimeType }));
 
-    let progress = 4;
-    convertTimerRef.current = window.setInterval(() => {
-      progress = Math.min(progress + 9, 98);
-      setConversionProgress(progress);
-    }, 160);
-
-    window.setTimeout(() => {
-      if (convertTimerRef.current) {
-        window.clearInterval(convertTimerRef.current);
-        convertTimerRef.current = null;
-      }
-
-      setIsConverting(false);
       setConversionProgress(100);
-      setConversionResult(
-        format === 'gif'
-          ? {
-              format: 'gif',
-              name: 'preview.gif',
-              url: PLACEHOLDER_GIF,
-              downloadName: 'web-gif-preview.gif',
-            }
-          : {
-              format: 'mp4',
-              name: source.name.endsWith('.mp4') ? source.name : 'preview.mp4',
-              url: source.url,
-              downloadName: source.name.endsWith('.mp4') ? source.name : 'web-gif-preview.mp4',
-            },
+      setConversionResult({
+        format,
+        name: result.outputFileName,
+        url: outputUrl,
+        downloadName: result.outputFileName,
+        revokeOnDispose: true,
+      });
+    } catch (error) {
+      console.error(error);
+      window.alert(
+        error instanceof Error
+          ? `Conversion failed: ${error.message}`
+          : 'Conversion failed.',
       );
-    }, 2200);
+      setConversionProgress(0);
+    } finally {
+      setIsConverting(false);
+    }
   }
 
   if (!isReady) {
@@ -417,7 +474,9 @@ export default function App() {
               format={format}
               frameRate={frameRate}
               isConverting={isConverting}
-              onConvert={beginMockConversion}
+              onConvert={() => {
+                void beginConversion();
+              }}
               onFormatChange={setFormat}
               onFrameRateChange={(value) => setFrameRate(clamp(Math.round(value), 0, 60))}
               onResolutionChange={setResolution}
@@ -454,11 +513,11 @@ export default function App() {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
-                    Phase 1 notes
+                    Conversion engine
                   </p>
                   <p className="mt-3">
-                    GIF export uses a static placeholder preview. MP4 result reuses the
-                    currently loaded video until FFmpeg WebAssembly replaces this flow.
+                    Output now runs through FFmpeg WebAssembly using the current trim,
+                    crop, rotation, frame rate, resolution, and text settings.
                   </p>
                 </div>
               </div>

@@ -63,7 +63,7 @@ export function EditControls({
   onTextOverlayChange,
 }: EditControlsProps) {
   const selectClassName =
-    'w-full rounded-2xl border border-white/10 bg-black px-3 py-3 text-white outline-none transition focus:border-white/50';
+    'app-select w-full rounded-2xl border border-white/10 bg-black px-3 py-3 pr-12 text-white outline-none transition focus:border-white/50';
 
   return (
     <div className="space-y-4" data-testid="edit-controls">

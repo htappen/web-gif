@@ -46,20 +46,22 @@ export function TimelineControl({
       if (dragTarget === 'start') {
         const nextStart = clamp(value, 0, Math.max(trimEnd - gap, 0));
         onTrimChange(nextStart, trimEnd);
-        if (currentTime < nextStart) {
-          onCurrentTimeChange(nextStart);
-        }
         return;
       }
 
       const nextEnd = clamp(value, Math.min(trimStart + gap, duration), duration);
       onTrimChange(trimStart, nextEnd);
-      if (currentTime > nextEnd) {
-        onCurrentTimeChange(nextEnd);
-      }
     };
 
     const handlePointerUp = () => {
+      if (dragTarget === 'start' && trimStart > currentTime) {
+        onCurrentTimeChange(trimStart);
+      }
+
+      if (dragTarget === 'end' && trimEnd < currentTime) {
+        onCurrentTimeChange(trimEnd);
+      }
+
       setDragTarget(null);
     };
 
@@ -102,6 +104,7 @@ export function TimelineControl({
           className="absolute top-4 h-8 w-4 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
           onPointerDown={(event) => {
             event.preventDefault();
+            event.stopPropagation();
             setDragTarget('start');
           }}
           style={{ left: `${startPercent}%` }}
@@ -112,6 +115,7 @@ export function TimelineControl({
           className="absolute top-4 h-8 w-4 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
           onPointerDown={(event) => {
             event.preventDefault();
+            event.stopPropagation();
             setDragTarget('end');
           }}
           style={{ left: `${endPercent}%` }}
@@ -122,6 +126,7 @@ export function TimelineControl({
           className="absolute top-4 h-9 w-9 -translate-x-1/2 rounded-full border border-white/25 bg-white shadow-lg shadow-plum-950/70"
           onPointerDown={(event) => {
             event.preventDefault();
+            event.stopPropagation();
             setDragTarget('seek');
           }}
           style={{ left: `${seekPercent}%` }}

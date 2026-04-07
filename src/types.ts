@@ -44,4 +44,5 @@ export interface ConversionResult {
   name: string;
   url: string;
   downloadName: string;
+  revokeOnDispose?: boolean;
 }

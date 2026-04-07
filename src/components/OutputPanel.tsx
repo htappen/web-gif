@@ -30,7 +30,7 @@ export function OutputPanel({
   result,
 }: OutputPanelProps) {
   const selectClassName =
-    'w-full rounded-2xl border border-white/10 bg-black px-3 py-3 text-white outline-none transition focus:border-white/50';
+    'app-select w-full rounded-2xl border border-white/10 bg-black px-3 py-3 pr-12 text-white outline-none transition focus:border-white/50';
 
   return (
     <aside
@@ -75,24 +75,28 @@ export function OutputPanel({
         </label>
 
         <div>
-          <div className="mb-2 flex items-center justify-between text-sm text-plum-100/70">
-            <span>Frame rate</span>
-            <span>{frameRate} fps</span>
-          </div>
+          <label className="mb-2 block text-sm text-plum-100/70">Frame rate</label>
           <div className="flex items-center gap-3">
             <input
               className="w-full accent-plum-200"
               max={60}
               min={0}
-              onChange={(event) => onFrameRateChange(Number(event.target.value))}
+              onChange={(event) => onFrameRateChange(Math.min(60, Math.max(0, Number(event.target.value))))}
               type="range"
               value={frameRate}
             />
             <input
-              className="w-20 rounded-2xl border border-white/10 bg-plum-950/55 px-3 py-2 text-center text-white outline-none transition focus:border-white/50"
+              className="w-20 rounded-2xl border border-white/10 bg-black px-3 py-2 text-center text-white outline-none transition focus:border-white/50"
+              inputMode="numeric"
               max={60}
               min={0}
-              onChange={(event) => onFrameRateChange(Number(event.target.value))}
+              onChange={(event) => {
+                const rawValue = event.target.value.trim();
+                const nextValue = rawValue === '' ? 0 : Math.min(60, Math.max(0, Number(rawValue)));
+                onFrameRateChange(nextValue);
+              }}
+              pattern="[0-9]*"
+              step={1}
               type="number"
               value={frameRate}
             />
@@ -128,7 +132,7 @@ export function OutputPanel({
               />
             </div>
             <p className="text-sm text-plum-100/75">
-              Mock conversion in progress for phase 1.
+              Running FFmpeg WebAssembly conversion.
             </p>
           </div>
         ) : null}

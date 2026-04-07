@@ -21,6 +21,14 @@ export interface BackendRecipe {
   fps?: number;
   outputHeight?: number;
   preserveAudio?: boolean;
+  textOverlay?: {
+    text: string;
+    x: number;
+    y: number;
+    fontSize: number;
+    color: string;
+    fontFileName: string;
+  };
 }
 
 export interface BackendProbeResult {
@@ -37,4 +45,12 @@ export interface BackendRunResult {
   outputFileName: string;
   outputData: Uint8Array;
   probe: BackendProbeResult;
+}
+
+export interface BackendRunOptions {
+  onProgress?: (progress: number) => void;
+  extraInputFiles?: Array<{
+    fileName: string;
+    data: Uint8Array;
+  }>;
 }
