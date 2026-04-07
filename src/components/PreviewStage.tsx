@@ -4,6 +4,7 @@ import { CropIcon, PlayIcon, SparkIcon } from './Icons';
 import type { CropBox, CropHandle, Rotation, SourceMedia, TextOverlayState } from '../types';
 
 interface PreviewStageProps {
+  className?: string;
   source: SourceMedia | null;
   isSourceLoading: boolean;
   sourceProgress: number;
@@ -39,6 +40,7 @@ type TextDragState = {
 } | null;
 
 export function PreviewStage({
+  className,
   source,
   isSourceLoading,
   sourceProgress,
@@ -242,16 +244,16 @@ export function PreviewStage({
   );
 
   return (
-    <div className="rounded-[28px] border border-white/10 bg-white/10 p-4 shadow-panel backdrop-blur">
+    <div className={`rounded-[28px] border border-white/10 bg-white/10 p-4 shadow-panel backdrop-blur ${className ?? ''}`}>
       {!source && !isSourceLoading ? emptyState : null}
 
       {source || isSourceLoading ? (
         <div
-          className="relative overflow-hidden rounded-[28px] border border-white/10 bg-plum-950/55"
+          className="relative h-full overflow-hidden rounded-[28px] border border-white/10 bg-plum-950/55"
           data-testid="preview-stage"
         >
           <div
-            className="group relative mx-auto aspect-video max-w-full"
+            className="group relative flex h-full items-center justify-center"
             onMouseEnter={() => setShowPlaybackControl(true)}
             onMouseLeave={() => setShowPlaybackControl(false)}
             ref={stageRef}
@@ -259,7 +261,7 @@ export function PreviewStage({
             {source ? (
               <>
                 <div
-                  className="absolute inset-0 overflow-hidden"
+                  className="relative aspect-video h-full max-h-full w-full max-w-full overflow-hidden"
                   style={rotationStyle}
                 >
                   <video

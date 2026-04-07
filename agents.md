@@ -2,7 +2,7 @@
 
 ## Current Stage
 
-Phase 1 complete through milestone 8. Next: phase 2 conversion integration.
+Phase 1 UI complete. Current focus: FFmpeg WebAssembly backend validation before app integration.
 
 ## Completed
 
@@ -17,12 +17,12 @@ Phase 1 complete through milestone 8. Next: phase 2 conversion integration.
 
 ## In Progress
 
-- Preparing for phase 2 FFmpeg WebAssembly integration and command mapping.
+- Building the FFmpeg WebAssembly backend module, fixed-scenario tests, and CLI comparison checks.
 
 ## Next General Steps
 
 1. Integrate FFmpeg WebAssembly loading and initialization into the existing startup flow.
-2. Translate trim, crop, rotation, text, frame rate, and resolution settings into FFmpeg command arguments.
-3. Replace the mocked GIF and MP4 results with generated browser-local outputs.
-4. Preserve audio by default for MP4 exports where compatible.
-5. Add validation and targeted tests around FFmpeg command construction and output behavior.
+2. Translate trim, crop, rotation, text, frame rate, and resolution settings into FFmpeg command arguments in an isolated backend module.
+3. Validate FFmpeg WebAssembly output with fixed recipes before wiring it into the UI.
+4. Use CLI FFmpeg and FFprobe as sanity-check oracles against the FFmpeg WebAssembly outputs.
+5. Replace the mocked GIF and MP4 results with generated browser-local outputs.

@@ -29,9 +29,12 @@ export function OutputPanel({
   conversionProgress,
   result,
 }: OutputPanelProps) {
+  const selectClassName =
+    'w-full rounded-2xl border border-white/10 bg-black px-3 py-3 text-white outline-none transition focus:border-white/50';
+
   return (
     <aside
-      className="w-full rounded-[28px] border border-white/10 bg-white/10 p-5 shadow-panel backdrop-blur xl:max-w-[280px]"
+      className="w-full rounded-[28px] border border-white/10 bg-white/10 p-5 shadow-panel backdrop-blur"
       data-testid="output-panel"
     >
       <p className="text-xs uppercase tracking-[0.26em] text-plum-100/60">
@@ -41,24 +44,25 @@ export function OutputPanel({
         <label className="block">
           <span className="mb-2 block text-sm text-plum-100/70">Format</span>
           <select
-            className="w-full rounded-2xl border border-white/10 bg-plum-950/55 px-3 py-3 text-white outline-none transition focus:border-white/50"
+            className={selectClassName}
             onChange={(event) => onFormatChange(event.target.value as OutputFormat)}
             value={format}
           >
-            <option value="gif">GIF</option>
-            <option value="mp4">MP4</option>
+            <option className="bg-black text-white" value="gif">GIF</option>
+            <option className="bg-black text-white" value="mp4">MP4</option>
           </select>
         </label>
 
         <label className="block">
           <span className="mb-2 block text-sm text-plum-100/70">Resolution</span>
           <select
-            className="w-full rounded-2xl border border-white/10 bg-plum-950/55 px-3 py-3 text-white outline-none transition focus:border-white/50"
+            className={selectClassName}
             onChange={(event) => onResolutionChange(Number(event.target.value))}
             value={resolution}
           >
-            {resolutionOptions.map((option) => (
+              {resolutionOptions.map((option) => (
               <option
+                className="bg-black text-white"
                 disabled={disabledResolutions.includes(option)}
                 key={option}
                 value={option}

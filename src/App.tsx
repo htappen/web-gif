@@ -252,113 +252,147 @@ export default function App() {
 
   return (
     <main className="h-screen overflow-hidden text-white">
-      <div className="grid h-full xl:grid-cols-[minmax(0,1fr)_320px]">
-        <section className="h-full overflow-y-auto p-4 sm:p-5 xl:pr-0">
-          <div className="space-y-5">
-            <div
-              className="rounded-[32px] border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-4 shadow-panel backdrop-blur sm:p-5"
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={(event) => {
-                event.preventDefault();
-                const file = event.dataTransfer.files?.[0];
-                if (file) {
-                  handleFileSelection(file);
+      <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_200px] md:grid-rows-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_400px_400px] lg:grid-rows-1">
+        <section className="min-h-0 overflow-y-auto p-4 md:row-start-1 md:p-5 md:pr-4 lg:col-start-1 lg:row-start-1 lg:overflow-hidden lg:p-5 lg:pr-4">
+          <div
+            className="rounded-[32px] border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-4 shadow-panel backdrop-blur sm:p-5 lg:flex lg:h-full lg:flex-col"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const file = event.dataTransfer.files?.[0];
+              if (file) {
+                handleFileSelection(file);
+              }
+            }}
+          >
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <button
+                className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
+                onClick={() =>
+                  loadSource({
+                    label: 'Sample clip',
+                    name: 'sample.mp4',
+                    url: SAMPLE_VIDEO,
+                    revokeOnDispose: false,
+                  })
                 }
-              }}
-            >
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <button
-                  className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
-                  onClick={() =>
-                    loadSource({
-                      label: 'Sample clip',
-                      name: 'sample.mp4',
-                      url: SAMPLE_VIDEO,
-                      revokeOnDispose: false,
-                    })
-                  }
-                  type="button"
-                >
-                  Load sample
-                </button>
-                <button
-                  className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
-                  onClick={() => fileInputRef.current?.click()}
-                  type="button"
-                >
-                  Choose video
-                </button>
-                <button
-                  className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
-                  onClick={() => {
-                    setCropEnabled(false);
-                    setCropBox(DEFAULT_CROP);
-                    setRotation(0);
-                    setTextOverlay(DEFAULT_TEXT);
-                    setTrimStart(0);
-                    setTrimEnd(duration);
-                    setCurrentTime(0);
-                  }}
-                  type="button"
-                >
-                  Reset edits
-                </button>
-              </div>
-              <PreviewStage
-                cropBox={cropBox}
-                cropEnabled={cropEnabled}
-                currentTime={currentTime}
-                isSourceLoading={isSourceLoading}
-                onCropChange={setCropBox}
-                onCurrentTimeChange={setCurrentTime}
-                onLoadedMetadata={({ duration: nextDuration, width, height }) => {
-                  setDuration(nextDuration);
-                  setSourceWidth(width);
-                  setSourceHeight(height);
+                type="button"
+              >
+                Load sample
+              </button>
+              <button
+                className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
+              >
+                Choose video
+              </button>
+              <button
+                className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
+                onClick={() => {
+                  setCropEnabled(false);
+                  setCropBox(DEFAULT_CROP);
+                  setRotation(0);
+                  setTextOverlay(DEFAULT_TEXT);
                   setTrimStart(0);
-                  setTrimEnd(nextDuration);
+                  setTrimEnd(duration);
                   setCurrentTime(0);
-                  setSourceProgress(100);
-                  setIsSourceLoading(false);
                 }}
-                onTextOverlayChange={setTextOverlay}
-                rotation={rotation}
-                source={source}
-                sourceProgress={sourceProgress}
-                textOverlay={textOverlay}
+                type="button"
+              >
+                Reset edits
+              </button>
+            </div>
+            <PreviewStage
+              className="lg:min-h-0 lg:flex-1"
+              cropBox={cropBox}
+              cropEnabled={cropEnabled}
+              currentTime={currentTime}
+              isSourceLoading={isSourceLoading}
+              onCropChange={setCropBox}
+              onCurrentTimeChange={setCurrentTime}
+              onLoadedMetadata={({ duration: nextDuration, width, height }) => {
+                setDuration(nextDuration);
+                setSourceWidth(width);
+                setSourceHeight(height);
+                setTrimStart(0);
+                setTrimEnd(nextDuration);
+                setCurrentTime(0);
+                setSourceProgress(100);
+                setIsSourceLoading(false);
+              }}
+              onTextOverlayChange={setTextOverlay}
+              rotation={rotation}
+              source={source}
+              sourceProgress={sourceProgress}
+              textOverlay={textOverlay}
+              trimEnd={trimEnd}
+              trimStart={trimStart}
+            />
+            <div className="mt-4">
+              <TimelineControl
+                currentTime={currentTime}
+                duration={duration}
+                onCurrentTimeChange={setCurrentTime}
+                onTrimChange={(start, end) => {
+                  setTrimStart(start);
+                  setTrimEnd(end);
+                }}
                 trimEnd={trimEnd}
                 trimStart={trimStart}
               />
-              <div className="mt-4">
-                <TimelineControl
-                  currentTime={currentTime}
-                  duration={duration}
-                  onCurrentTimeChange={setCurrentTime}
-                  onTrimChange={(start, end) => {
-                    setTrimStart(start);
-                    setTrimEnd(end);
-                  }}
-                  trimEnd={trimEnd}
-                  trimStart={trimStart}
-                />
-              </div>
-
-              {source ? (
-                <div className="mt-4 rounded-[24px] border border-dashed border-white/15 bg-plum-950/35 px-4 py-3 text-sm text-plum-100/75">
-                  Drag and drop another file anywhere in this panel to replace{' '}
-                  <span className="font-semibold text-white">{source.name}</span>.
-                </div>
-              ) : null}
             </div>
 
-            <EditControls
-              cropEnabled={cropEnabled}
-              onCropToggle={setCropEnabled}
-              onRotationChange={setRotation}
-              onTextOverlayChange={setTextOverlay}
-              rotation={rotation}
-              textOverlay={textOverlay}
-            />
+            {source ? (
+              <div className="mt-4 rounded-[24px] border border-dashed border-white/15 bg-plum-950/35 px-4 py-3 text-sm text-plum-100/75">
+                Drag and drop another file anywhere in this panel to replace{' '}
+                <span className="font-semibold text-white">{source.name}</span>.
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <section className="min-h-0 overflow-y-auto p-4 pt-0 md:row-start-2 md:p-5 md:pt-0 md:pr-4 lg:col-start-2 lg:row-start-1 lg:border-l lg:border-white/10 lg:bg-white/5 lg:p-5">
+          <div className="space-y-5">
+            <div className="rounded-[28px] border border-white/10 bg-white/10 p-5 shadow-panel backdrop-blur">
+              <EditControls
+                cropEnabled={cropEnabled}
+                onCropToggle={setCropEnabled}
+                onRotationChange={setRotation}
+                onTextOverlayChange={setTextOverlay}
+                rotation={rotation}
+                textOverlay={textOverlay}
+              />
+            </div>
+
+            <section className="rounded-[28px] border border-white/10 bg-white/10 p-5 shadow-panel backdrop-blur lg:hidden">
+              <div className="space-y-4 text-sm text-plum-100/80">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
+                    Active source
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-white">
+                    {source?.name ?? 'No source loaded'}
+                  </p>
+                  <p className="mt-2 text-sm text-plum-100/75">
+                    Effective frame {Math.round(effectiveDimensions.width)} x{' '}
+                    {Math.round(effectiveDimensions.height)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
+                    Edit summary
+                  </p>
+                  <p className="mt-3">
+                    Trim {trimStart.toFixed(1)}s to {trimEnd.toFixed(1)}s,
+                    rotation {rotation}°, crop {cropEnabled ? 'enabled' : 'disabled'}.
+                  </p>
+                  <p className="mt-2">
+                    Text overlay {textOverlay.enabled ? 'active' : 'off'} at {frameRate} fps.
+                  </p>
+                </div>
+              </div>
+            </section>
             <input
               accept="video/*"
               className="hidden"
@@ -375,7 +409,7 @@ export default function App() {
           </div>
         </section>
 
-        <aside className="h-full overflow-y-auto border-l border-white/10 bg-white/5 p-4 sm:p-5">
+        <aside className="min-h-0 overflow-y-auto border-t border-white/10 bg-white/5 p-4 pt-0 md:col-start-2 md:row-span-2 md:row-start-1 md:border-l md:border-t-0 md:p-4 md:pt-5 lg:col-start-3 lg:row-start-1 lg:p-5">
           <div className="space-y-5">
             <OutputPanel
               conversionProgress={conversionProgress}
@@ -392,7 +426,7 @@ export default function App() {
               result={conversionResult}
             />
 
-            <section className="rounded-[28px] border border-white/10 bg-white/10 p-5 shadow-panel backdrop-blur">
+            <section className="hidden rounded-[28px] border border-white/10 bg-white/10 p-5 shadow-panel backdrop-blur lg:block">
               <div className="space-y-4 text-sm text-plum-100/80">
                 <div>
                   <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">

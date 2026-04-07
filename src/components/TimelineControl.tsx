@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { clamp, formatTime } from '../utils';
+import { clamp } from '../utils';
 
 interface TimelineControlProps {
   duration: number;
@@ -46,13 +46,17 @@ export function TimelineControl({
       if (dragTarget === 'start') {
         const nextStart = clamp(value, 0, Math.max(trimEnd - gap, 0));
         onTrimChange(nextStart, trimEnd);
-        onCurrentTimeChange(clamp(currentTime, nextStart, trimEnd));
+        if (currentTime < nextStart) {
+          onCurrentTimeChange(nextStart);
+        }
         return;
       }
 
       const nextEnd = clamp(value, Math.min(trimStart + gap, duration), duration);
       onTrimChange(trimStart, nextEnd);
-      onCurrentTimeChange(clamp(currentTime, trimStart, nextEnd));
+      if (currentTime > nextEnd) {
+        onCurrentTimeChange(nextEnd);
+      }
     };
 
     const handlePointerUp = () => {
@@ -74,12 +78,6 @@ export function TimelineControl({
 
   return (
     <div className="rounded-[24px] border border-white/10 bg-plum-950/45 p-4">
-      <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.25em] text-plum-100/60">
-        <span>Trim range</span>
-        <span>
-          {formatTime(trimStart)} - {formatTime(trimEnd)}
-        </span>
-      </div>
       <div
         ref={trackRef}
         className="relative h-16 select-none"
@@ -101,7 +99,7 @@ export function TimelineControl({
         />
         <button
           aria-label="Trim start"
-          className="absolute top-5 h-7 w-7 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
+          className="absolute top-4 h-8 w-4 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
           onPointerDown={(event) => {
             event.preventDefault();
             setDragTarget('start');
@@ -111,7 +109,7 @@ export function TimelineControl({
         />
         <button
           aria-label="Trim end"
-          className="absolute top-5 h-7 w-7 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
+          className="absolute top-4 h-8 w-4 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
           onPointerDown={(event) => {
             event.preventDefault();
             setDragTarget('end');
@@ -129,10 +127,6 @@ export function TimelineControl({
           style={{ left: `${seekPercent}%` }}
           type="button"
         />
-      </div>
-      <div className="mt-2 flex items-center justify-between text-sm text-plum-100/80">
-        <span>Current frame</span>
-        <span>{formatTime(currentTime)}</span>
       </div>
     </div>
   );

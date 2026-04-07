@@ -62,6 +62,9 @@ export function EditControls({
   textOverlay,
   onTextOverlayChange,
 }: EditControlsProps) {
+  const selectClassName =
+    'w-full rounded-2xl border border-white/10 bg-black px-3 py-3 text-white outline-none transition focus:border-white/50';
+
   return (
     <div className="space-y-4" data-testid="edit-controls">
       <ToggleRow
@@ -81,14 +84,14 @@ export function EditControls({
               Rotation
             </span>
             <select
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-plum-950/55 px-3 py-3 text-white outline-none transition focus:border-white/50"
+              className={`mt-2 ${selectClassName}`}
               onChange={(event) => onRotationChange(Number(event.target.value) as Rotation)}
               value={rotation}
             >
-              <option value={0}>0°</option>
-              <option value={90}>90°</option>
-              <option value={180}>180°</option>
-              <option value={270}>270°</option>
+              <option className="bg-black text-white" value={0}>0°</option>
+              <option className="bg-black text-white" value={90}>90°</option>
+              <option className="bg-black text-white" value={180}>180°</option>
+              <option className="bg-black text-white" value={270}>270°</option>
             </select>
           </label>
         </div>
@@ -124,7 +127,7 @@ export function EditControls({
           <label>
             <span className="mb-2 block text-sm text-plum-100/70">Font</span>
             <select
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-white outline-none transition focus:border-white/50"
+              className={selectClassName}
               onChange={(event) =>
                 onTextOverlayChange({
                   ...textOverlay,
@@ -134,7 +137,7 @@ export function EditControls({
               value={textOverlay.fontFamily}
             >
               {FONT_OPTIONS.map((font) => (
-                <option key={font} value={font}>
+                <option className="bg-black text-white" key={font} value={font}>
                   {font.split(',')[0].replaceAll('"', '')}
                 </option>
               ))}
@@ -143,7 +146,7 @@ export function EditControls({
           <label>
             <span className="mb-2 block text-sm text-plum-100/70">Weight</span>
             <select
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-white outline-none transition focus:border-white/50"
+              className={selectClassName}
               onChange={(event) =>
                 onTextOverlayChange({
                   ...textOverlay,
@@ -152,11 +155,11 @@ export function EditControls({
               }
               value={textOverlay.fontWeight}
             >
-              <option value="400">Regular</option>
-              <option value="500">Medium</option>
-              <option value="600">Semibold</option>
-              <option value="700">Bold</option>
-              <option value="800">Extra Bold</option>
+              <option className="bg-black text-white" value="400">Regular</option>
+              <option className="bg-black text-white" value="500">Medium</option>
+              <option className="bg-black text-white" value="600">Semibold</option>
+              <option className="bg-black text-white" value="700">Bold</option>
+              <option className="bg-black text-white" value="800">Extra Bold</option>
             </select>
           </label>
           <label>

@@ -2,7 +2,7 @@
 
 ## Current Objective
 
-Deliver phase 1: a complete interactive browser UI prototype with local sample media, real editing interactions, and mocked conversion output.
+Deliver FFmpeg WebAssembly backend validation before integrating real conversion into the app UI.
 
 ## Assumptions
 
@@ -67,6 +67,9 @@ Deliver phase 1: a complete interactive browser UI prototype with local sample m
 
 ### 9. Phase 2 Conversion Integration
 
+- First build the FFmpeg WebAssembly backend module and recipe-to-command translation layer outside the app UI.
+- Add fixed-scenario backend tests that execute FFmpeg WebAssembly against local sample media.
+- Use local CLI FFmpeg and FFprobe only as sanity-check oracles against the FFmpeg WebAssembly outputs.
 - Add FFmpeg WebAssembly bootstrapping and file-system management.
 - Translate editor state into FFmpeg command arguments.
 - Implement GIF export pipeline.
@@ -88,12 +91,15 @@ Deliver phase 1: a complete interactive browser UI prototype with local sample m
 4. Implement timeline and edit interactions.
 5. Implement output controls and mocked conversion flow.
 6. Polish responsiveness and UX states.
-7. Integrate FFmpeg WebAssembly.
-8. Validate and harden.
+7. Build and validate the FFmpeg WebAssembly backend module with fixed-scenario tests.
+8. Compare FFmpeg WebAssembly outputs against CLI FFmpeg sanity checks.
+9. Integrate FFmpeg WebAssembly into the app.
+10. Validate and harden.
 
 ## Risks
 
 - FFmpeg WebAssembly load size and startup time may make initial load UX sensitive.
+- FFmpeg WebAssembly test execution in headless browsers may require careful waiting and artifact handling.
 - Browser preview rendering may diverge from FFmpeg output if phase 1 abstractions are too loose.
 - Crop and text overlay coordinate systems can become inconsistent once rotation and export scaling are added.
 - Static hosting constraints require careful asset-path and WASM loading configuration.
