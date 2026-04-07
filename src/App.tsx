@@ -251,80 +251,10 @@ export default function App() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-4 text-white sm:px-6 sm:py-6">
-      <div className="mx-auto max-w-7xl">
-        <header className="rounded-[32px] border border-white/10 bg-white/10 px-6 py-6 shadow-panel backdrop-blur sm:px-8">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-            <div>
-              <p className="font-display text-sm uppercase tracking-[0.34em] text-plum-200">
-                Web GIF
-              </p>
-              <h1 className="mt-4 max-w-3xl font-display text-4xl font-semibold text-white sm:text-5xl">
-                Edit a local clip, preview the result, export when you are ready
-              </h1>
-              <p className="mt-4 max-w-3xl text-sm text-plum-100/78 sm:text-base">
-                Phase 1 is fully interactive: load sample media, trim, crop,
-                rotate, add text, and walk through a mocked conversion flow with
-                downloadable results.
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              <button
-                className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
-                onClick={() =>
-                  loadSource({
-                    label: 'Sample clip',
-                    name: 'sample.mp4',
-                    url: SAMPLE_VIDEO,
-                    revokeOnDispose: false,
-                  })
-                }
-                type="button"
-              >
-                Load sample
-              </button>
-              <button
-                className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
-                onClick={() => fileInputRef.current?.click()}
-                type="button"
-              >
-                Choose video
-              </button>
-              <button
-                className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
-                onClick={() => {
-                  setCropEnabled(false);
-                  setCropBox(DEFAULT_CROP);
-                  setRotation(0);
-                  setTextOverlay(DEFAULT_TEXT);
-                  setTrimStart(0);
-                  setTrimEnd(duration);
-                  setCurrentTime(0);
-                }}
-                type="button"
-              >
-                Reset edits
-              </button>
-            </div>
-          </div>
-          <input
-            accept="video/*"
-            className="hidden"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) {
-                handleFileSelection(file);
-              }
-              event.currentTarget.value = '';
-            }}
-            ref={fileInputRef}
-            type="file"
-          />
-        </header>
-
-        <section className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
-          <div className="space-y-6">
+    <main className="h-screen overflow-hidden text-white">
+      <div className="grid h-full xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section className="h-full overflow-y-auto p-4 sm:p-5 xl:pr-0">
+          <div className="space-y-5">
             <div
               className="rounded-[32px] border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-4 shadow-panel backdrop-blur sm:p-5"
               onDragOver={(event) => event.preventDefault()}
@@ -336,6 +266,44 @@ export default function App() {
                 }
               }}
             >
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <button
+                  className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
+                  onClick={() =>
+                    loadSource({
+                      label: 'Sample clip',
+                      name: 'sample.mp4',
+                      url: SAMPLE_VIDEO,
+                      revokeOnDispose: false,
+                    })
+                  }
+                  type="button"
+                >
+                  Load sample
+                </button>
+                <button
+                  className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
+                  onClick={() => fileInputRef.current?.click()}
+                  type="button"
+                >
+                  Choose video
+                </button>
+                <button
+                  className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15 active:scale-[0.99]"
+                  onClick={() => {
+                    setCropEnabled(false);
+                    setCropBox(DEFAULT_CROP);
+                    setRotation(0);
+                    setTextOverlay(DEFAULT_TEXT);
+                    setTrimStart(0);
+                    setTrimEnd(duration);
+                    setCurrentTime(0);
+                  }}
+                  type="button"
+                >
+                  Reset edits
+                </button>
+              </div>
               <PreviewStage
                 cropBox={cropBox}
                 cropEnabled={cropEnabled}
@@ -361,6 +329,19 @@ export default function App() {
                 trimEnd={trimEnd}
                 trimStart={trimStart}
               />
+              <div className="mt-4">
+                <TimelineControl
+                  currentTime={currentTime}
+                  duration={duration}
+                  onCurrentTimeChange={setCurrentTime}
+                  onTrimChange={(start, end) => {
+                    setTrimStart(start);
+                    setTrimEnd(end);
+                  }}
+                  trimEnd={trimEnd}
+                  trimStart={trimStart}
+                />
+              </div>
 
               {source ? (
                 <div className="mt-4 rounded-[24px] border border-dashed border-white/15 bg-plum-950/35 px-4 py-3 text-sm text-plum-100/75">
@@ -370,18 +351,6 @@ export default function App() {
               ) : null}
             </div>
 
-            <TimelineControl
-              currentTime={currentTime}
-              duration={duration}
-              onCurrentTimeChange={setCurrentTime}
-              onTrimChange={(start, end) => {
-                setTrimStart(start);
-                setTrimEnd(end);
-              }}
-              trimEnd={trimEnd}
-              trimStart={trimStart}
-            />
-
             <EditControls
               cropEnabled={cropEnabled}
               onCropToggle={setCropEnabled}
@@ -390,59 +359,78 @@ export default function App() {
               rotation={rotation}
               textOverlay={textOverlay}
             />
-          </div>
-
-          <OutputPanel
-            conversionProgress={conversionProgress}
-            disabledResolutions={disabledResolutions}
-            format={format}
-            frameRate={frameRate}
-            isConverting={isConverting}
-            onConvert={beginMockConversion}
-            onFormatChange={setFormat}
-            onFrameRateChange={(value) => setFrameRate(clamp(Math.round(value), 0, 60))}
-            onResolutionChange={setResolution}
-            resolution={resolution}
-            resolutionOptions={RESOLUTION_OPTIONS}
-            result={conversionResult}
-          />
-        </section>
-
-        <section className="mt-6 grid gap-4 rounded-[32px] border border-white/10 bg-white/10 p-6 shadow-panel backdrop-blur md:grid-cols-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
-              Active source
-            </p>
-            <p className="mt-3 text-lg font-semibold text-white">
-              {source?.name ?? 'No source loaded'}
-            </p>
-            <p className="mt-2 text-sm text-plum-100/75">
-              Effective frame {Math.round(effectiveDimensions.width)} x{' '}
-              {Math.round(effectiveDimensions.height)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
-              Edit summary
-            </p>
-            <p className="mt-3 text-sm text-plum-100/80">
-              Trim {trimStart.toFixed(1)}s to {trimEnd.toFixed(1)}s, rotation{' '}
-              {rotation}°, crop {cropEnabled ? 'enabled' : 'disabled'}.
-            </p>
-            <p className="mt-2 text-sm text-plum-100/80">
-              Text overlay {textOverlay.enabled ? 'active' : 'off'} at {frameRate} fps.
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
-              Phase 1 notes
-            </p>
-            <p className="mt-3 text-sm text-plum-100/80">
-              GIF export uses a static placeholder preview. MP4 result reuses the
-              currently loaded video until FFmpeg WebAssembly replaces this flow.
-            </p>
+            <input
+              accept="video/*"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) {
+                  handleFileSelection(file);
+                }
+                event.currentTarget.value = '';
+              }}
+              ref={fileInputRef}
+              type="file"
+            />
           </div>
         </section>
+
+        <aside className="h-full overflow-y-auto border-l border-white/10 bg-white/5 p-4 sm:p-5">
+          <div className="space-y-5">
+            <OutputPanel
+              conversionProgress={conversionProgress}
+              disabledResolutions={disabledResolutions}
+              format={format}
+              frameRate={frameRate}
+              isConverting={isConverting}
+              onConvert={beginMockConversion}
+              onFormatChange={setFormat}
+              onFrameRateChange={(value) => setFrameRate(clamp(Math.round(value), 0, 60))}
+              onResolutionChange={setResolution}
+              resolution={resolution}
+              resolutionOptions={RESOLUTION_OPTIONS}
+              result={conversionResult}
+            />
+
+            <section className="rounded-[28px] border border-white/10 bg-white/10 p-5 shadow-panel backdrop-blur">
+              <div className="space-y-4 text-sm text-plum-100/80">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
+                    Active source
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-white">
+                    {source?.name ?? 'No source loaded'}
+                  </p>
+                  <p className="mt-2 text-sm text-plum-100/75">
+                    Effective frame {Math.round(effectiveDimensions.width)} x{' '}
+                    {Math.round(effectiveDimensions.height)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
+                    Edit summary
+                  </p>
+                  <p className="mt-3">
+                    Trim {trimStart.toFixed(1)}s to {trimEnd.toFixed(1)}s,
+                    rotation {rotation}°, crop {cropEnabled ? 'enabled' : 'disabled'}.
+                  </p>
+                  <p className="mt-2">
+                    Text overlay {textOverlay.enabled ? 'active' : 'off'} at {frameRate} fps.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
+                    Phase 1 notes
+                  </p>
+                  <p className="mt-3">
+                    GIF export uses a static placeholder preview. MP4 result reuses the
+                    currently loaded video until FFmpeg WebAssembly replaces this flow.
+                  </p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </aside>
       </div>
     </main>
   );

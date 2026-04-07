@@ -73,7 +73,7 @@ export function TimelineControl({
   const seekPercent = duration ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="rounded-[26px] border border-white/10 bg-plum-950/45 p-4">
+    <div className="rounded-[24px] border border-white/10 bg-plum-950/45 p-4">
       <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.25em] text-plum-100/60">
         <span>Trim range</span>
         <span>
@@ -101,7 +101,7 @@ export function TimelineControl({
         />
         <button
           aria-label="Trim start"
-          className="absolute top-3 h-10 w-4 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
+          className="absolute top-5 h-7 w-7 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
           onPointerDown={(event) => {
             event.preventDefault();
             setDragTarget('start');
@@ -111,7 +111,7 @@ export function TimelineControl({
         />
         <button
           aria-label="Trim end"
-          className="absolute top-3 h-10 w-4 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
+          className="absolute top-5 h-7 w-7 -translate-x-1/2 rounded-full border border-white/20 bg-plum-200 shadow-lg shadow-plum-950/60"
           onPointerDown={(event) => {
             event.preventDefault();
             setDragTarget('end');
@@ -121,7 +121,7 @@ export function TimelineControl({
         />
         <button
           aria-label="Seek position"
-          className="absolute top-1 h-14 w-5 -translate-x-1/2 rounded-full border border-white/25 bg-white shadow-lg shadow-plum-950/70"
+          className="absolute top-4 h-9 w-9 -translate-x-1/2 rounded-full border border-white/25 bg-white shadow-lg shadow-plum-950/70"
           onPointerDown={(event) => {
             event.preventDefault();
             setDragTarget('seek');

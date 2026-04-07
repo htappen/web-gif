@@ -8,5 +8,8 @@ PORT="${PORT:-4173}"
 
 cd "$ROOT_DIR"
 
+echo "Running production rebuild before starting dev server"
+npm run build
+
 echo "Starting dev server at http://${HOST}:${PORT}"
 exec npm run dev -- --host "$HOST" --port "$PORT"

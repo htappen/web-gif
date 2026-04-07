@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { clamp } from '../utils';
+import { clamp, inverseRotateAnchorPoint, inverseRotateCropBox, rotateAnchorPoint, rotateCropBox } from '../utils';
 import { CropIcon, PlayIcon, SparkIcon } from './Icons';
 import type { CropBox, CropHandle, Rotation, SourceMedia, TextOverlayState } from '../types';
 
@@ -57,6 +57,7 @@ export function PreviewStage({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showPlaybackControl, setShowPlaybackControl] = useState(true);
   const [cropDrag, setCropDrag] = useState<CropDragState>(null);
   const [textDrag, setTextDrag] = useState<TextDragState>(null);
 
@@ -89,7 +90,10 @@ export function PreviewStage({
       onCurrentTimeChange(video.currentTime);
     };
 
-    const handlePause = () => setIsPlaying(false);
+    const handlePause = () => {
+      setIsPlaying(false);
+      setShowPlaybackControl(true);
+    };
     const handlePlay = () => setIsPlaying(true);
 
     video.addEventListener('timeupdate', handleTimeUpdate);
@@ -102,6 +106,16 @@ export function PreviewStage({
       video.removeEventListener('play', handlePlay);
     };
   }, [onCurrentTimeChange, source, trimEnd, trimStart]);
+
+  const displayCropBox = useMemo(
+    () => rotateCropBox(cropBox, rotation),
+    [cropBox, rotation],
+  );
+
+  const displayTextAnchor = useMemo(
+    () => rotateAnchorPoint(textOverlay.x, textOverlay.y, rotation),
+    [rotation, textOverlay.x, textOverlay.y],
+  );
 
   useEffect(() => {
     if (!cropDrag || !stageRef.current) {
@@ -144,7 +158,7 @@ export function PreviewStage({
         next.height = clamp(bottomEdge - next.y, minSize, 1);
       }
 
-      onCropChange(next);
+      onCropChange(inverseRotateCropBox(next, rotation));
     };
 
     const handlePointerUp = () => setCropDrag(null);
@@ -156,7 +170,7 @@ export function PreviewStage({
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [cropDrag, onCropChange]);
+  }, [cropDrag, onCropChange, rotation]);
 
   useEffect(() => {
     if (!textDrag || !stageRef.current) {
@@ -171,11 +185,14 @@ export function PreviewStage({
       const rect = stageRef.current.getBoundingClientRect();
       const dx = (event.clientX - textDrag.originX) / rect.width;
       const dy = (event.clientY - textDrag.originY) / rect.height;
+      const nextDisplayX = clamp(textDrag.startX + dx, 0.02, 0.96);
+      const nextDisplayY = clamp(textDrag.startY + dy, 0.04, 0.92);
+      const nextAnchor = inverseRotateAnchorPoint(nextDisplayX, nextDisplayY, rotation);
 
       onTextOverlayChange({
         ...textOverlay,
-        x: clamp(textDrag.startX + dx, 0.02, 0.92),
-        y: clamp(textDrag.startY + dy, 0.04, 0.9),
+        x: clamp(nextAnchor.x, 0.02, 0.96),
+        y: clamp(nextAnchor.y, 0.04, 0.92),
       });
     };
 
@@ -188,7 +205,7 @@ export function PreviewStage({
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [onTextOverlayChange, textDrag, textOverlay]);
+  }, [onTextOverlayChange, rotation, textDrag, textOverlay]);
 
   const cropHandles = useMemo(
     () =>
@@ -226,21 +243,6 @@ export function PreviewStage({
 
   return (
     <div className="rounded-[28px] border border-white/10 bg-white/10 p-4 shadow-panel backdrop-blur">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-plum-100/60">
-            Preview
-          </p>
-          <p className="mt-2 text-sm text-plum-100/70">
-            Tap the stage to play or pause. Playback loops within the trim
-            brackets.
-          </p>
-        </div>
-        <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-plum-100/70">
-          Rotation {rotation}°
-        </div>
-      </div>
-
       {!source && !isSourceLoading ? emptyState : null}
 
       {source || isSourceLoading ? (
@@ -249,136 +251,144 @@ export function PreviewStage({
           data-testid="preview-stage"
         >
           <div
-            className="relative mx-auto aspect-video max-w-full"
+            className="group relative mx-auto aspect-video max-w-full"
+            onMouseEnter={() => setShowPlaybackControl(true)}
+            onMouseLeave={() => setShowPlaybackControl(false)}
             ref={stageRef}
           >
             {source ? (
-              <div
-                className="absolute inset-0 overflow-hidden"
-                style={rotationStyle}
-              >
-                <video
-                  className="h-full w-full object-cover"
-                  loop
-                  onClick={() => {
-                    const video = videoRef.current;
+              <>
+                <div
+                  className="absolute inset-0 overflow-hidden"
+                  style={rotationStyle}
+                >
+                  <video
+                    className="h-full w-full object-cover"
+                    loop
+                    onClick={() => {
+                      const video = videoRef.current;
 
-                    if (!video) {
-                      return;
-                    }
+                      if (!video) {
+                        return;
+                      }
 
-                    if (video.paused) {
-                      video.play().catch(() => undefined);
-                    } else {
-                      video.pause();
-                    }
-                  }}
-                  onLoadedMetadata={(event) => {
-                    const target = event.currentTarget;
-                    onLoadedMetadata({
-                      duration: target.duration,
-                      width: target.videoWidth,
-                      height: target.videoHeight,
-                    });
-                    target.currentTime = trimStart;
-                  }}
-                  playsInline
-                  ref={videoRef}
-                  src={source.url}
-                />
-
-                {textOverlay.enabled && textOverlay.text ? (
-                  <div
-                    className="absolute"
-                    style={{
-                      left: `${textOverlay.x * 100}%`,
-                      top: `${textOverlay.y * 100}%`,
+                      if (video.paused) {
+                        video.play().catch(() => undefined);
+                      } else {
+                        video.pause();
+                      }
                     }}
-                  >
-                    <button
-                      aria-label="Move text anchor"
-                      className="absolute -left-5 -top-5 flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-plum-950/85 text-sm text-white"
-                      onPointerDown={(event) => {
-                        event.preventDefault();
-                        setTextDrag({
-                          originX: event.clientX,
-                          originY: event.clientY,
-                          startX: textOverlay.x,
-                          startY: textOverlay.y,
-                        });
-                      }}
-                      type="button"
-                    >
-                      +
-                    </button>
+                    onLoadedMetadata={(event) => {
+                      const target = event.currentTarget;
+                      onLoadedMetadata({
+                        duration: target.duration,
+                        width: target.videoWidth,
+                        height: target.videoHeight,
+                      });
+                      target.currentTime = trimStart;
+                    }}
+                    playsInline
+                    ref={videoRef}
+                    src={source.url}
+                  />
+                </div>
+
+                <div className="absolute inset-0">
+                  {textOverlay.enabled && textOverlay.text ? (
                     <div
+                      className="absolute"
                       style={{
-                        color: textOverlay.color,
-                        fontFamily: textOverlay.fontFamily,
-                        fontSize: `${textOverlay.fontSize}px`,
-                        fontWeight: textOverlay.fontWeight,
-                        textShadow: '0 4px 18px rgba(0, 0, 0, 0.45)',
+                        left: `${displayTextAnchor.x * 100}%`,
+                        top: `${displayTextAnchor.y * 100}%`,
                       }}
                     >
-                      {textOverlay.text}
-                    </div>
-                  </div>
-                ) : null}
-
-                {cropEnabled ? (
-                  <div
-                    className="absolute border-2 border-dashed border-white bg-plum-200/10 shadow-[0_0_0_9999px_rgba(12,5,24,0.45)]"
-                    style={{
-                      left: `${cropBox.x * 100}%`,
-                      top: `${cropBox.y * 100}%`,
-                      width: `${cropBox.width * 100}%`,
-                      height: `${cropBox.height * 100}%`,
-                    }}
-                  >
-                    <button
-                      aria-label="Move crop box"
-                      className="absolute inset-0 flex items-start justify-start"
-                      onPointerDown={(event) => {
-                        event.preventDefault();
-                        setCropDrag({
-                          mode: 'move',
-                          originX: event.clientX,
-                          originY: event.clientY,
-                          start: cropBox,
-                        });
-                      }}
-                      type="button"
-                    >
-                      <span className="m-3 flex h-10 w-10 items-center justify-center rounded-full bg-plum-950/80 text-white">
-                        <CropIcon className="h-5 w-5" />
-                      </span>
-                    </button>
-                    {cropHandles.map(([mode, className]) => (
                       <button
-                        aria-label={`Resize crop ${mode}`}
-                        className={`absolute h-4 w-4 rounded-full border border-white/30 bg-white ${className}`}
-                        key={mode}
+                        aria-label="Move text anchor"
+                        className="absolute -left-5 -top-5 flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-plum-950/85 text-sm text-white"
                         onPointerDown={(event) => {
                           event.preventDefault();
-                          setCropDrag({
-                            mode,
+                          setTextDrag({
                             originX: event.clientX,
                             originY: event.clientY,
-                            start: cropBox,
+                            startX: displayTextAnchor.x,
+                            startY: displayTextAnchor.y,
                           });
                         }}
                         type="button"
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
+                      >
+                        +
+                      </button>
+                      <div
+                        style={{
+                          color: textOverlay.color,
+                          fontFamily: textOverlay.fontFamily,
+                          fontSize: `${textOverlay.fontSize}px`,
+                          fontWeight: textOverlay.fontWeight,
+                          textShadow: '0 4px 18px rgba(0, 0, 0, 0.45)',
+                        }}
+                      >
+                        {textOverlay.text}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {cropEnabled ? (
+                    <div
+                      className="absolute border-2 border-dashed border-white bg-plum-200/10 shadow-[0_0_0_9999px_rgba(12,5,24,0.45)]"
+                      style={{
+                        left: `${displayCropBox.x * 100}%`,
+                        top: `${displayCropBox.y * 100}%`,
+                        width: `${displayCropBox.width * 100}%`,
+                        height: `${displayCropBox.height * 100}%`,
+                      }}
+                    >
+                      <button
+                        aria-label="Move crop box"
+                        className="absolute inset-0 flex items-start justify-start"
+                        onPointerDown={(event) => {
+                          event.preventDefault();
+                          setCropDrag({
+                            mode: 'move',
+                            originX: event.clientX,
+                            originY: event.clientY,
+                            start: displayCropBox,
+                          });
+                        }}
+                        type="button"
+                      >
+                        <span className="m-3 flex h-10 w-10 items-center justify-center rounded-full bg-plum-950/80 text-white">
+                          <CropIcon className="h-5 w-5" />
+                        </span>
+                      </button>
+                      {cropHandles.map(([mode, className]) => (
+                        <button
+                          aria-label={`Resize crop ${mode}`}
+                          className={`absolute h-4 w-4 rounded-full border border-white/30 bg-white ${className}`}
+                          key={mode}
+                          onPointerDown={(event) => {
+                            event.preventDefault();
+                            setCropDrag({
+                              mode,
+                              originX: event.clientX,
+                              originY: event.clientY,
+                              start: displayCropBox,
+                            });
+                          }}
+                          type="button"
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </>
             ) : null}
 
             {source ? (
               <button
                 aria-label={isPlaying ? 'Pause video' : 'Play video'}
-                className="absolute left-5 top-5 flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-plum-950/70 text-white shadow-lg shadow-plum-950/60 backdrop-blur transition hover:bg-plum-950/85"
+                className={`absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-plum-950/70 text-white shadow-lg shadow-plum-950/60 backdrop-blur transition-all duration-300 hover:bg-plum-950/85 ${
+                  showPlaybackControl || !isPlaying ? 'opacity-100' : 'opacity-0'
+                }`}
                 onClick={() => {
                   const video = videoRef.current;
 
@@ -394,7 +404,7 @@ export function PreviewStage({
                 }}
                 type="button"
               >
-                <PlayIcon className="h-7 w-7 translate-x-[1px]" />
+                <PlayIcon className="h-9 w-9 translate-x-[2px]" />
               </button>
             ) : null}
 
