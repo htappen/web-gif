@@ -18,6 +18,7 @@ Phase 1 UI complete. Current focus: FFmpeg WebAssembly backend validation before
 ## In Progress
 
 - Building the FFmpeg WebAssembly backend module, fixed-scenario tests, and CLI comparison checks.
+- Check [docs/testing-plan.md](/home/htappen/web-gif/docs/testing-plan.md) before expanding or modifying backend validation work.
 
 ## Next General Steps
 

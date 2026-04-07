@@ -6,3 +6,4 @@ vite.config.d.ts
 tailwind.config.js
 tailwind.config.d.ts
 artifacts/
+.ffmpeg-backend-build/
