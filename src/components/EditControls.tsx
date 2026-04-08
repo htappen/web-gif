@@ -1,4 +1,4 @@
-import { CropIcon, RotateIcon, TypeIcon } from './Icons';
+import { SquareIcon, RotateIcon, TypeIcon } from './Icons';
 import { FONT_OPTIONS } from '../constants';
 import type { Rotation, TextOverlayState } from '../types';
 
@@ -69,7 +69,7 @@ export function EditControls({
     <div className="space-y-4" data-testid="edit-controls">
       <ToggleRow
         active={cropEnabled}
-        icon={<CropIcon className="h-5 w-5" />}
+        icon={<SquareIcon className="h-5 w-5" />}
         label="Crop"
         onToggle={() => onCropToggle(!cropEnabled)}
       />
@@ -138,7 +138,7 @@ export function EditControls({
             >
               {FONT_OPTIONS.map((font) => (
                 <option className="bg-black text-white" key={font} value={font}>
-                  {font.split(',')[0].replaceAll('"', '')}
+                  {font.split(',')[0].replace(/"/g, '')}
                 </option>
               ))}
             </select>

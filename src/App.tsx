@@ -17,7 +17,7 @@ import type {
 } from './types';
 import { clamp, getOutputDimensions } from './utils';
 
-const SAMPLE_VIDEO = getAssetUrl('media/sample.mp4');
+const SAMPLE_VIDEO = getAssetUrl('media/big_buck_bunny.mp4');
 
 function getInitialFormat(): OutputFormat {
   const params = new URLSearchParams(window.location.search);
@@ -78,18 +78,7 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (!isReady || source) {
-      return;
-    }
 
-    loadSource({
-      label: 'Sample clip',
-      name: 'sample.mp4',
-      url: SAMPLE_VIDEO,
-      revokeOnDispose: false,
-    });
-  }, [isReady, source]);
 
   useEffect(() => {
     currentSourceRef.current = source;
@@ -276,7 +265,7 @@ export default function App() {
         },
       });
       const mimeType = format === 'gif' ? 'image/gif' : 'video/mp4';
-      const outputUrl = URL.createObjectURL(new Blob([result.outputData], { type: mimeType }));
+      const outputUrl = URL.createObjectURL(new Blob([result.outputData as unknown as BlobPart], { type: mimeType }));
 
       setConversionProgress(100);
       setConversionResult({
@@ -329,7 +318,7 @@ export default function App() {
                 onClick={() =>
                   loadSource({
                     label: 'Sample clip',
-                    name: 'sample.mp4',
+                    name: 'big_buck_bunny.mp4',
                     url: SAMPLE_VIDEO,
                     revokeOnDispose: false,
                   })

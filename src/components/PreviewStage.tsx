@@ -58,10 +58,15 @@ export function PreviewStage({
 }: PreviewStageProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const latestCropBoxRef = useRef(cropBox);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPlaybackControl, setShowPlaybackControl] = useState(true);
   const [cropDrag, setCropDrag] = useState<CropDragState>(null);
   const [textDrag, setTextDrag] = useState<TextDragState>(null);
+
+  useEffect(() => {
+    latestCropBoxRef.current = cropBox;
+  }, [cropBox]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -70,7 +75,9 @@ export function PreviewStage({
       return;
     }
 
-    video.currentTime = currentTime;
+    if (Math.abs(video.currentTime - currentTime) > 0.1) {
+      video.currentTime = currentTime;
+    }
   }, [currentTime, source?.url]);
 
   useEffect(() => {
@@ -136,34 +143,63 @@ export function PreviewStage({
       let next = { ...cropDrag.start };
 
       if (cropDrag.mode === 'move') {
-        next.x = clamp(cropDrag.start.x + dx, 0, 1 - cropDrag.start.width);
-        next.y = clamp(cropDrag.start.y + dy, 0, 1 - cropDrag.start.height);
+        next.x = cropDrag.start.x + dx;
+        next.y = cropDrag.start.y + dy;
       }
 
       if (cropDrag.mode.includes('e')) {
-        next.width = clamp(cropDrag.start.width + dx, minSize, 1 - cropDrag.start.x);
+        next.width = Math.max(minSize, cropDrag.start.width + dx);
       }
 
       if (cropDrag.mode.includes('s')) {
-        next.height = clamp(cropDrag.start.height + dy, minSize, 1 - cropDrag.start.y);
+        next.height = Math.max(minSize, cropDrag.start.height + dy);
       }
 
       if (cropDrag.mode.includes('w')) {
         const rightEdge = cropDrag.start.x + cropDrag.start.width;
-        next.x = clamp(cropDrag.start.x + dx, 0, rightEdge - minSize);
-        next.width = clamp(rightEdge - next.x, minSize, 1);
+        next.x = Math.min(cropDrag.start.x + dx, rightEdge - minSize);
+        next.width = rightEdge - next.x;
       }
 
       if (cropDrag.mode.includes('n')) {
         const bottomEdge = cropDrag.start.y + cropDrag.start.height;
-        next.y = clamp(cropDrag.start.y + dy, 0, bottomEdge - minSize);
-        next.height = clamp(bottomEdge - next.y, minSize, 1);
+        next.y = Math.min(cropDrag.start.y + dy, bottomEdge - minSize);
+        next.height = bottomEdge - next.y;
       }
 
       onCropChange(inverseRotateCropBox(next, rotation));
     };
 
-    const handlePointerUp = () => setCropDrag(null);
+    const handlePointerUp = () => {
+      setCropDrag(null);
+
+      // Snap its size to the edge upon releasing the mouse
+      const displaySnap = rotateCropBox(latestCropBoxRef.current, rotation);
+      let changed = false;
+
+      if (displaySnap.x < 0) {
+        displaySnap.width = Math.max(0.12, displaySnap.width + displaySnap.x);
+        displaySnap.x = 0;
+        changed = true;
+      }
+      if (displaySnap.y < 0) {
+        displaySnap.height = Math.max(0.12, displaySnap.height + displaySnap.y);
+        displaySnap.y = 0;
+        changed = true;
+      }
+      if (displaySnap.x + displaySnap.width > 1) {
+        displaySnap.width = Math.max(0.12, 1 - displaySnap.x);
+        changed = true;
+      }
+      if (displaySnap.y + displaySnap.height > 1) {
+        displaySnap.height = Math.max(0.12, 1 - displaySnap.y);
+        changed = true;
+      }
+
+      if (changed) {
+        onCropChange(inverseRotateCropBox(displaySnap, rotation));
+      }
+    };
 
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
@@ -261,11 +297,11 @@ export function PreviewStage({
             {source ? (
               <>
                 <div
-                  className="relative aspect-video h-full max-h-full w-full max-w-full overflow-hidden"
+                  className="relative h-full max-h-full w-full max-w-full overflow-hidden"
                   style={rotationStyle}
                 >
                   <video
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain"
                     loop
                     onClick={() => {
                       const video = videoRef.current;
@@ -358,9 +394,6 @@ export function PreviewStage({
                         }}
                         type="button"
                       >
-                        <span className="m-3 flex h-10 w-10 items-center justify-center rounded-full bg-plum-950/80 text-white">
-                          <CropIcon className="h-5 w-5" />
-                        </span>
                       </button>
                       {cropHandles.map(([mode, className]) => (
                         <button

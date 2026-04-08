@@ -32,6 +32,14 @@ export function CropIcon({ className }: IconProps) {
   );
 }
 
+export function SquareIcon({ className }: IconProps) {
+  return (
+    <svg {...iconProps(className)}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+    </svg>
+  );
+}
+
 export function RotateIcon({ className }: IconProps) {
   return (
     <svg {...iconProps(className)}>
