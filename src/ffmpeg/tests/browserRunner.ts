@@ -1,5 +1,6 @@
 import { FIXED_BACKEND_RECIPES } from '../backend/fixedRecipes.js';
 import { FfmpegWasmBackend } from '../backend/wasmBackend.js';
+import { getAssetUrl } from '../../assetPaths.js';
 
 async function run() {
   const target = document.getElementById('results');
@@ -10,7 +11,7 @@ async function run() {
   try {
     target.textContent = 'Fetching sample media...';
     const backend = new FfmpegWasmBackend();
-    const response = await fetch('/media/sample.mp4');
+    const response = await fetch(getAssetUrl('media/sample.mp4'));
     const sampleBytes = new Uint8Array(await response.arrayBuffer());
     const results = [];
 

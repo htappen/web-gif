@@ -1,5 +1,6 @@
 import { FfmpegWasmBackend } from './backend/wasmBackend.js';
 import type { BackendRecipe, BackendRunOptions } from './backend/types.js';
+import { getAssetUrl } from '../assetPaths';
 import type { CropBox, OutputFormat, Rotation, TextOverlayState } from '../types';
 import { getOutputDimensions, rotateAnchorPoint } from '../utils';
 
@@ -21,20 +22,20 @@ export interface ConversionInputs {
 const backendSingleton = new FfmpegWasmBackend();
 const FONT_FILE_BY_SELECTION: Record<string, { regular: string; bold: string }> = {
   '"Space Grotesk", sans-serif': {
-    regular: '/vendor/fonts/DejaVuSans.ttf',
-    bold: '/vendor/fonts/DejaVuSans-Bold.ttf',
+    regular: getAssetUrl('vendor/fonts/DejaVuSans.ttf'),
+    bold: getAssetUrl('vendor/fonts/DejaVuSans-Bold.ttf'),
   },
   '"Plus Jakarta Sans", sans-serif': {
-    regular: '/vendor/fonts/DejaVuSans.ttf',
-    bold: '/vendor/fonts/DejaVuSans-Bold.ttf',
+    regular: getAssetUrl('vendor/fonts/DejaVuSans.ttf'),
+    bold: getAssetUrl('vendor/fonts/DejaVuSans-Bold.ttf'),
   },
   'Georgia, serif': {
-    regular: '/vendor/fonts/DejaVuSerif.ttf',
-    bold: '/vendor/fonts/DejaVuSerif-Bold.ttf',
+    regular: getAssetUrl('vendor/fonts/DejaVuSerif.ttf'),
+    bold: getAssetUrl('vendor/fonts/DejaVuSerif-Bold.ttf'),
   },
   '"Courier New", monospace': {
-    regular: '/vendor/fonts/DejaVuSansMono.ttf',
-    bold: '/vendor/fonts/DejaVuSansMono-Bold.ttf',
+    regular: getAssetUrl('vendor/fonts/DejaVuSansMono.ttf'),
+    bold: getAssetUrl('vendor/fonts/DejaVuSansMono-Bold.ttf'),
   },
 };
 

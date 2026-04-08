@@ -5,6 +5,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { OutputPanel } from './components/OutputPanel';
 import { PreviewStage } from './components/PreviewStage';
 import { TimelineControl } from './components/TimelineControl';
+import { getAssetUrl } from './assetPaths';
 import { buildConversionOptions, buildConversionRecipe, getFfmpegBackend } from './ffmpeg/appIntegration';
 import type {
   ConversionResult,
@@ -16,7 +17,7 @@ import type {
 } from './types';
 import { clamp, getOutputDimensions } from './utils';
 
-const SAMPLE_VIDEO = '/media/sample.mp4';
+const SAMPLE_VIDEO = getAssetUrl('media/sample.mp4');
 
 function getInitialFormat(): OutputFormat {
   const params = new URLSearchParams(window.location.search);

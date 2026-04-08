@@ -1,10 +1,11 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { getAssetUrl } from '../../assetPaths.js';
 import { FfmpegRecipeBuilder } from './recipeBuilder.js';
 import type { BackendRecipe, BackendRunOptions, BackendRunResult } from './types.js';
 
-const coreURL = '/vendor/ffmpeg/core/ffmpeg-core.js';
-const wasmURL = '/vendor/ffmpeg/core/ffmpeg-core.wasm';
-const classWorkerURL = '/vendor/ffmpeg/ffmpeg/worker.js';
+const coreURL = getAssetUrl('vendor/ffmpeg/core/ffmpeg-core.js');
+const wasmURL = getAssetUrl('vendor/ffmpeg/core/ffmpeg-core.wasm');
+const classWorkerURL = getAssetUrl('vendor/ffmpeg/ffmpeg/worker.js');
 
 export class FfmpegWasmBackend {
   private readonly ffmpeg = new FFmpeg();
